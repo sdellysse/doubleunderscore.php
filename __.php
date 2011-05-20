@@ -159,6 +159,15 @@ __::add_method('first', 'returns value', function ($subject) {
 });
 __::alias_method('first', 'head');
 
+__::add_method('first_with_key', 'returns value', function ($subject) {
+    $keys = array_keys($subject);
+    $values = array_values($subject);
+    return array(
+        array_shift($keys) => array_shift($values),
+    );
+});
+__::alias_method('first_with_key', 'head_with_key');
+
 __::add_method('is_callable', 'returns value', function ($subject) {
     return is_callable($subject);
 });
@@ -176,10 +185,18 @@ __::add_method('last', 'returns value', function ($subject) {
     return array_pop($subject);
 });
 
+__::add_method('last_with_key', 'returns value', function ($subject) {
+    $keys = array_keys($subject);
+    $values = array_values($subject);
+    return array(
+        array_pop($keys) => array_pop($values),
+    );
+});
+
 __::add_method('map', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($subject as $k => $v) {
-        $retval[$k] = call_user_func($callable, $v);
+    foreach ($subject as $v) {
+        $retval []= call_user_func($callable, $v);
     }
     return $retval;
 });
@@ -219,9 +236,15 @@ __::alias_method('reject_with_key', 'reject_with_index');
 
 __::add_method('rest', 'returns collection', function ($subject) {
     array_shift($subject);
-    return $subject;
+    return array_values($subject);
 });
 __::alias_method('rest', 'tail');
+
+__::add_method('rest_with_keys', 'returns collection', function ($subject) {
+    array_shift($subject);
+    return $subject;
+});
+__::add_method('rest_with_keys', 'tail_with_keys');
 
 __::add_method('reverse', 'returns collection', function ($subject) {
     return array_reverse($subject);
@@ -281,6 +304,29 @@ __::add_method('without', 'returns collection', function (/* $subject, $values..
             continue;
         } else {
             $retval []= $value;
+        }
+    }
+
+    return $retval;
+});
+
+__::add_method('without_with_keys', 'returns collection', function (/* $subject, $values... */) {
+    $arguments = func_get_args();
+    $subject = array_shift($arguments);
+    $skip_values = $arguments;
+
+    $retval = array();
+    foreach ($subject as $key => $value) {
+        $skip_this_value = false;
+        foreach ($values as $skip_value) {
+            if ($value === $skip_value) {
+                $skip_this_value = true;
+            }
+        }
+        if ($skip_this_value) {
+            continue;
+        } else {
+            $retval[$key] = $value;
         }
     }
 
