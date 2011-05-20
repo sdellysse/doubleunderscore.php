@@ -34,7 +34,7 @@ class __ implements Countable, ArrayAccess, IteratorAggregate {
     public static $methods = array();
 
     # Adds a method to the class. Signature for $callable is
-    # function ($target, $method_args...)
+    # function ($subject, $method_args...)
     public static function add_method ($name, $returns, $callable) {
         static::$methods[$name] = array(
             'returns' => $returns,
@@ -49,40 +49,40 @@ class __ implements Countable, ArrayAccess, IteratorAggregate {
 
     ############# Countable
     public function count () {
-        return count($this->target);
+        return count($this->subject);
     }
     ############ /Countable
 
     ############ ArrayAccess
     public function offsetExists ($offset) {
-        return isset($this->target[$offset]);
+        return isset($this->subject[$offset]);
     }
 
     public function offsetGet ($offset) {
-        return $this->target[$offset];
+        return $this->subject[$offset];
     }
 
     public function offsetSet ($offset, $value) {
         if (is_null($offset)) {
-            $this->target []= $value;
+            $this->subject []= $value;
         } else {
-            $this->target[$offset] = $value;
+            $this->subject[$offset] = $value;
         }
     }
 
     public function offsetUnset ($offset) {
-        unset ($this->target[$offset]);
+        unset ($this->subject[$offset]);
     }
     ############ /ArrayAccess
 
     ############ IteratorAggregate
     public function getIterator () {
-        return new ArrayIterator($this->target);
+        return new ArrayIterator($this->subject);
     }
     ############ /IteratorAggregate
 
-    public function __construct ($target) {
-        $this->target = $target;
+    public function __construct ($subject) {
+        $this->subject = $subject;
     }
 
     public function __get ($attribute) {
@@ -91,7 +91,7 @@ class __ implements Countable, ArrayAccess, IteratorAggregate {
 
     public function __call ($method_name, $arguments = array()) {
         $method = static::$methods[$method_name];
-        array_unshift($arguments, $this->target);
+        array_unshift($arguments, $this->subject);
 
         if ($method['returns'] === 'returns nothing') {
             call_user_func_array($method['callable'], $arguments);
@@ -106,27 +106,47 @@ class __ implements Countable, ArrayAccess, IteratorAggregate {
     }
 
     public function value () {
-        return $this->target;
+        return $this->subject;
     }
 }
 
-__::add_method('detect', 'returns value', function ($target, $callable) {
-    foreach ($target as $item) {
+__::add_method('compact', 'returns collection', function ($subject) {
+    $retval = array();
+    foreach ($subject as $value) {
+        if ($value) {
+            $retval []= $value;
+        }
+    }
+    return $value;
+});
+
+__::add_method('compact_with_keys', 'returns collection', function ($subject) {
+    $retval = array();
+    foreach ($subject as $key => $value) {
+        if ($value) {
+            $retval[$key] = $value;
+        }
+    }
+    return $value;
+});
+
+__::add_method('detect', 'returns value', function ($subject, $callable) {
+    foreach ($subject as $item) {
         if (call_user_func($item)) {
             return $item;
         }
     }
 });
 
-__::add_method('each', 'returns nothing', function ($target, $callable) {
-    foreach ($target as $item) {
+__::add_method('each', 'returns nothing', function ($subject, $callable) {
+    foreach ($subject as $item) {
         call_user_func($callable, $item);
     }
 });
 __::alias_method('each', 'for_each');
 
-__::add_method('each_with_key', 'returns nothing', function ($target, $callable) {
-    foreach ($target as $key => $item) {
+__::add_method('each_with_key', 'returns nothing', function ($subject, $callable) {
+    foreach ($subject as $key => $item) {
         call_user_func($callable, $key, $item);
     }
 });
@@ -134,30 +154,40 @@ __::alias_method('each_with_key', 'each_with_index');
 __::alias_method('each_with_key', 'for_each_with_index');
 __::alias_method('each_with_key', 'for_each_with_key');
 
-__::add_method('is_callable', 'returns value', function ($target) {
-    return is_callable($target);
+__::add_method('first', 'returns value', function ($subject) {
+    return array_shift($subject);
+});
+__::alias_method('first', 'head');
+
+__::add_method('is_callable', 'returns value', function ($subject) {
+    return is_callable($subject);
 });
 
-__::add_method('is_null', 'returns value', function ($target) {
-    return is_null($target);
+__::add_method('is_null', 'returns value', function ($subject) {
+    return is_null($subject);
 });
 
-__::add_method('keys', 'returns collection', function ($target) {
-    return array_keys($target);
+__::add_method('keys', 'returns collection', function ($subject) {
+    return array_keys($subject);
 });
 
-__::add_method('map', 'returns collection', function ($target, $callable) {
+
+__::add_method('last', 'returns value', function ($subject) {
+    return array_pop($subject);
+});
+
+__::add_method('map', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $k => $v) {
+    foreach ($subject as $k => $v) {
         $retval[$k] = call_user_func($callable, $v);
     }
     return $retval;
 });
 __::alias_method('map', 'collect');
 
-__::add_method('map_with_key', 'returns collection', function ($target, $callable) {
+__::add_method('map_with_key', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $k => $v) {
+    foreach ($subject as $k => $v) {
         $retval[$k] = call_user_func($callable, $k, $v);
     }
     return $retval;
@@ -166,9 +196,9 @@ __::alias_method('map_with_key', 'collect_with_index');
 __::alias_method('map_with_key', 'collect_with_key');
 __::alias_method('map_with_key', 'map_with_index');
 
-__::add_method('reject', 'returns collection', function ($target, $callable) {
+__::add_method('reject', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $value) {
+    foreach ($subject as $value) {
         if ( ! call_user_func($callable, $value)) {
             $retval []= $value;
         }
@@ -176,9 +206,9 @@ __::add_method('reject', 'returns collection', function ($target, $callable) {
     return $retval;
 });;
 
-__::add_method('reject_with_key', 'returns collection', function ($target, $callable) {
+__::add_method('reject_with_key', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $key => $value) {
+    foreach ($subject as $key => $value) {
         if ( ! call_user_func($callable, $key, $value)) {
             $retval[$key] = $value;
         }
@@ -187,16 +217,22 @@ __::add_method('reject_with_key', 'returns collection', function ($target, $call
 });;
 __::alias_method('reject_with_key', 'reject_with_index');
 
-__::add_method('reverse', 'returns collection', function ($target) {
-    return array_reverse($target);
+__::add_method('rest', 'returns collection', function ($subject) {
+    array_shift($subject);
+    return $subject;
 });
-__::add_method('reverse_with_keys', 'returns collection', function ($target) {
-    return array_reverse($target, true);
+__::alias_method('rest', 'tail');
+
+__::add_method('reverse', 'returns collection', function ($subject) {
+    return array_reverse($subject);
+});
+__::add_method('reverse_with_keys', 'returns collection', function ($subject) {
+    return array_reverse($subject, true);
 });
 
-__::add_method('select', 'returns collection', function ($target, $callable) {
+__::add_method('select', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $value) {
+    foreach ($subject as $value) {
         if (call_user_func($callable, $value)) {
             $retval []= $value;
         }
@@ -205,9 +241,9 @@ __::add_method('select', 'returns collection', function ($target, $callable) {
 });
 __::alias_method('select', 'filter');
 
-__::add_method('select_with_key', 'returns collection', function ($target, $callable) {
+__::add_method('select_with_key', 'returns collection', function ($subject, $callable) {
     $retval = array();
-    foreach ($target as $key => $value) {
+    foreach ($subject as $key => $value) {
         if (call_user_func($callable, $key, $value)) {
             $retval[$key] = $value;
         }
@@ -218,12 +254,35 @@ __::alias_method('select_with_key', 'filter_with_index');
 __::alias_method('select_with_key', 'filter_with_key');
 __::alias_method('select_with_key', 'select_with_index');
 
-__::add_method('times', 'returns nothing', function ($target, $callable) {
-    for ($i = 0; $i < target($target); $i++) {
+__::add_method('times', 'returns nothing', function ($subject, $callable) {
+    for ($i = 0; $i < subject($subject); $i++) {
         call_user_func($callable);
     }
 });
 
-__::add_method('values', 'returns collection', function ($target) {
-    return array_values($target);
+__::add_method('values', 'returns collection', function ($subject) {
+    return array_values($subject);
+});
+
+__::add_method('without', 'returns collection', function (/* $subject, $values... */) {
+    $arguments = func_get_args();
+    $subject = array_shift($arguments);
+    $skip_values = $arguments;
+
+    $retval = array();
+    foreach ($subject as $value) {
+        $skip_this_value = false;
+        foreach ($values as $skip_value) {
+            if ($value === $skip_value) {
+                $skip_this_value = true;
+            }
+        }
+        if ($skip_this_value) {
+            continue;
+        } else {
+            $retval []= $value;
+        }
+    }
+
+    return $retval;
 });
