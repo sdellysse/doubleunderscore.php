@@ -168,6 +168,10 @@ __::add_method('first_with_key', 'returns value', function ($subject) {
 });
 __::alias_method('first_with_key', 'head_with_key');
 
+__::add_method('flip', 'returns collection', function ($subject) {
+    return array_flip($subject);
+});
+
 __::add_method('is_callable', 'returns value', function ($subject) {
     return is_callable($subject);
 });
@@ -176,10 +180,28 @@ __::add_method('is_null', 'returns value', function ($subject) {
     return is_null($subject);
 });
 
+__::add_method('join', 'returns value', function ($subject, $delimiter = ' ') {
+    return implode($delimiter, $subject);
+});
+__::alias_method('join', 'implode');
+
+
+__::add_method('key_exists', 'returns value', function ($subject, $key) {
+    return array_key_exists($key, $subject);
+});
+__::alias_method('key_exists', 'has_key');
+
 __::add_method('keys', 'returns collection', function ($subject) {
     return array_keys($subject);
 });
 
+__::add_method('keys_to_lowercase', 'returns collection', function ($subject) {
+    return array_change_key_case($subject, CASE_LOWER);
+});
+
+__::add_method('keys_to_uppercase', 'returns collection', function ($subject) {
+    return array_change_key_case($subject, CASE_UPPER);
+});
 
 __::add_method('last', 'returns value', function ($subject) {
     return array_pop($subject);
@@ -213,6 +235,10 @@ __::alias_method('map_with_key', 'collect_with_index');
 __::alias_method('map_with_key', 'collect_with_key');
 __::alias_method('map_with_key', 'map_with_index');
 
+__::add_method('product', 'returns value', function ($subject) {
+    return array_product($subject);
+});
+
 __::add_method('reject', 'returns collection', function ($subject, $callable) {
     $retval = array();
     foreach ($subject as $value) {
@@ -244,7 +270,7 @@ __::add_method('rest_with_keys', 'returns collection', function ($subject) {
     array_shift($subject);
     return $subject;
 });
-__::add_method('rest_with_keys', 'tail_with_keys');
+__::alias_method('rest_with_keys', 'tail_with_keys');
 
 __::add_method('reverse', 'returns collection', function ($subject) {
     return array_reverse($subject);
@@ -276,6 +302,19 @@ __::add_method('select_with_key', 'returns collection', function ($subject, $cal
 __::alias_method('select_with_key', 'filter_with_index');
 __::alias_method('select_with_key', 'filter_with_key');
 __::alias_method('select_with_key', 'select_with_index');
+
+__::add_method('split', 'returns collection', function ($subject, $delimeter = ' ') {
+    if ($delimeter === '') {
+        return str_split($subject);
+    } else {
+        return explode($delimeter, $subject);
+    }
+});
+
+
+__::add_method('sum', 'returns value', function ($subject) {
+    return array_sum($subject);
+});
 
 __::add_method('times', 'returns nothing', function ($subject, $callable) {
     for ($i = 0; $i < subject($subject); $i++) {
