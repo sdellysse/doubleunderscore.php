@@ -110,6 +110,14 @@ class __ implements Countable, ArrayAccess, IteratorAggregate {
     }
 }
 
+__::add_method('detect', 'returns value', function ($target, $callable) {
+    foreach ($target as $item) {
+        if (call_user_func($item)) {
+            return $item;
+        }
+    }
+});
+
 __::add_method('each', 'returns nothing', function ($target, $callable) {
     foreach ($target as $item) {
         call_user_func($callable, $item);
@@ -122,15 +130,20 @@ __::add_method('each_with_key', 'returns nothing', function ($target, $callable)
         call_user_func($callable, $key, $item);
     }
 });
-__::alias_method('each_with_key', 'for_each_with_key');
 __::alias_method('each_with_key', 'each_with_index');
 __::alias_method('each_with_key', 'for_each_with_index');
+__::alias_method('each_with_key', 'for_each_with_key');
 
-__::add_method('reverse', 'returns collection', function ($target) {
-    return array_reverse($target);
+__::add_method('is_callable', 'returns value', function ($target) {
+    return is_callable($target);
 });
-__::add_method('reverse_with_keys', 'returns collection', function ($target) {
-    return array_reverse($target, true);
+
+__::add_method('is_null', 'returns value', function ($target) {
+    return is_null($target);
+});
+
+__::add_method('keys', 'returns collection', function ($target) {
+    return array_keys($target);
 });
 
 __::add_method('map', 'returns collection', function ($target, $callable) {
@@ -149,36 +162,36 @@ __::add_method('map_with_key', 'returns collection', function ($target, $callabl
     }
     return $retval;
 });
+__::alias_method('map_with_key', 'collect_with_index');
+__::alias_method('map_with_key', 'collect_with_key');
 __::alias_method('map_with_key', 'map_with_index');
 
-__::add_method('times', 'returns nothing', function ($target, $callable) {
-    for ($i = 0; $i < target($target); $i++) {
-        call_user_func($callable);
-    }
-});
-
-__::add_method('is_null', 'returns value', function ($target) {
-    return is_null($target);
-});
-
-__::add_method('keys', 'returns value', function ($target) {
-    return array_keys($target);
-});
-
-__::add_method('values', 'returns value', function ($target) {
-    return array_values($target);
-});
-
-__::add_method('is_callable', 'returns value', function ($target) {
-    return is_callable($target);
-});
-
-__::add_method('detect', 'returns value', function ($target, $callable) {
-    foreach ($target as $item) {
-        if (call_user_func($item)) {
-            return $item;
+__::add_method('reject', 'returns collection', function ($target, $callable) {
+    $retval = array();
+    foreach ($target as $value) {
+        if ( ! call_user_func($callable, $value)) {
+            $retval []= $value;
         }
     }
+    return $retval;
+});;
+
+__::add_method('reject_with_key', 'returns collection', function ($target, $callable) {
+    $retval = array();
+    foreach ($target as $key => $value) {
+        if ( ! call_user_func($callable, $key, $value)) {
+            $retval[$key] = $value;
+        }
+    }
+    return $retval;
+});;
+__::alias_method('reject_with_key', 'reject_with_index');
+
+__::add_method('reverse', 'returns collection', function ($target) {
+    return array_reverse($target);
+});
+__::add_method('reverse_with_keys', 'returns collection', function ($target) {
+    return array_reverse($target, true);
 });
 
 __::add_method('select', 'returns collection', function ($target, $callable) {
@@ -201,27 +214,16 @@ __::add_method('select_with_key', 'returns collection', function ($target, $call
     }
     return $retval;
 });
-__::alias_method('select_with_key', 'select_with_index');
-__::alias_method('select_with_key', 'filter_with_key');
 __::alias_method('select_with_key', 'filter_with_index');
+__::alias_method('select_with_key', 'filter_with_key');
+__::alias_method('select_with_key', 'select_with_index');
 
-__::add_method('reject', 'returns collection', function ($target, $callable) {
-    $retval = array();
-    foreach ($target as $value) {
-        if ( ! call_user_func($callable, $value)) {
-            $retval []= $value;
-        }
+__::add_method('times', 'returns nothing', function ($target, $callable) {
+    for ($i = 0; $i < target($target); $i++) {
+        call_user_func($callable);
     }
-    return $retval;
-});;
+});
 
-__::add_method('reject_with_key', 'returns collection', function ($target, $callable) {
-    $retval = array();
-    foreach ($target as $key => $value) {
-        if ( ! call_user_func($callable, $key, $value)) {
-            $retval[$key] = $value;
-        }
-    }
-    return $retval;
-});;
-__::alias_method('reject_with_key', 'reject_with_index');
+__::add_method('values', 'returns collection', function ($target) {
+    return array_values($target);
+});
